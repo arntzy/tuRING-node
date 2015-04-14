@@ -1,0 +1,17 @@
+  start       = expr* 
+  expr        = _?'(' state '[' note ']' _ operator _ number? _ '[' move ']' newstate ')'_? 
+  
+  state       = word
+  note        = word
+  operator    = word
+  move        = word
+  newstate    = word
+
+  word        = w:[a-zA-Z0-9#+-]+ { return { word:w.join('') } } 
+  number      = integer
+  integer     = d:digit+  { return parseInt(d.join('')) }
+
+  digit       = [0123456789]
+
+  _           = [ \t\r\n]*
+  __          = ' '+ / !.

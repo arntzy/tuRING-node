@@ -1,0 +1,4 @@
+(default[C] + 0 [R]default)
+(default[G] + 0 [L]makeD)
+(makeD[F] - 1 [L]makeD)
+(makeD[C] + 1 [R]default)

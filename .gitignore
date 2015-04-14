@@ -1,0 +1,5 @@
+DEADJOE
+*~
+*.bak
+*.swp
+/node_modules/
