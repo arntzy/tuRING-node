@@ -1,9 +1,9 @@
-var defaults = {
+let defaults = {
 	'osc_port':	8000,
 	'midi_port':	"MIDIOSC Router",
 };
 
-var opt = require('node-getopt').create([
+let opt = require('node-getopt').create([
 	['l',	'listen=ARG',	'Incoming UDP port for OSC connections, default: ' + defaults.osc_port],
 	['m',	'midi=ARG',	'MIDI port name, default: ' + defaults.midi_port],
 	['h' ,	'help',		'display this help']
@@ -17,19 +17,22 @@ var opt = require('node-getopt').create([
 	"\n" +
 	"Repository: http://github.com/pwhelan/node-midiosc-bridge\n"
 );
+let args = opt.parseSystem(); // parse command line
 
-var args = opt.parseSystem(); // parse command line
-
-var midi = require('midi'),
-	udp = require('dgram'),
-	osc = require('osc-min'),
-	fs = require('fs'),
-	vm = require('vm'),
-	mdns = require('mdns2'),
-	events = require('events'),
+let midi = require('midi'),
+    udp = require('dgram'),
+    osc = require('osc-min'),
+    fs = require('fs'),
+    vm = require('vm'),
+    mdns = require('mdns2'),
+    events = require('events'),
     tur = require('./tuRING'),
     PEG = require('pegjs');
 
+/**
+ * Use the grammar file (grammar) and source code (rules) for the tuRING programming language and compile the program for the tapeHead.
+ *
+ */
 function init(){
     fs.readFile('./grammar', 'utf8', function (err,data) {
             if (err) {return console.log(err);}
@@ -37,6 +40,11 @@ function init(){
             parser = buildParser(grammar);
             parseRules(parser);
     });
+}
+
+function buildParser(grammar){
+        parser = PEG.buildParser(grammar);
+        return parser;
 }
 
 function parseRules(parser){
@@ -47,22 +55,16 @@ function parseRules(parser){
             compiletuRING(ast);
         });
 }
-
 function compiletuRING(ast){
      tur.tuRING.compile.eval(ast);
      console.log("TURING init finished.");
 }
 
-function buildParser(grammar){
-        parser = PEG.buildParser(grammar);
-        return parser;
-}
-
 function tempoStep(callback, bpm, numsteps){
-    var x = 0;
+    let x = 0;
     millis = (60 / bpm) * 1000;   
     
-    var intervalID = setInterval(function(){
+    let intervalID = setInterval(function(){
         console.log(x);
         callback();
         if (++x === numsteps){
@@ -70,17 +72,18 @@ function tempoStep(callback, bpm, numsteps){
             }
         }, millis);
 }
-    
+
+// Start TapeHead
 init();
 
-var output = new midi.output();
+let output = new midi.output();
 output.openVirtualPort(
 	args.options.midi ?
 		args.options.midi:
 		defaults.midi_port
 );
 
-var input = new midi.input();
+let input = new midi.input();
 input.openPort(0);
 input.on('message', function(deltaTime, message) {
     //Intervene here to change MIDI functionality
@@ -93,7 +96,7 @@ input.on('message', function(deltaTime, message) {
 });
 
 function translatetoOSC(address, args){
-    var buf;
+    let buf;
 	buf = osc.toBuffer({
 	    oscType: 'message',
 		address: address,
@@ -105,11 +108,11 @@ function translatetoOSC(address, args){
 }
 
 
-var socket = udp.createSocket('udp4');
+let socket = udp.createSocket('udp4');
 socket.on("message", function(buffer, remote) {
 	try {
-		var msg = osc.fromBuffer(buffer);
-		var fs = require('fs');
+		let msg = osc.fromBuffer(buffer);
+		let fs = require('fs');
 		
 		
 		if (msg.address == '/tape') {
@@ -145,7 +148,7 @@ socket.bind(
 );
 
 
-var ad = mdns.createAdvertisement(
+let ad = mdns.createAdvertisement(
 	mdns.udp('osc'),
 	parseInt((args.options.listen ?
 		args.options.listen:
