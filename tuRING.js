@@ -53,7 +53,8 @@ let tapeHead = {
           tapeHead.currentRule = tuRING.rules[i];
         }
     }
-    console.log(`The current rule is: ${tapeHead.currentRule}`);
+    console.log('The current rule is:');
+    console.log(tapeHead.currentRule);
   },
 
   // write a new value on the tape at the tapeHead

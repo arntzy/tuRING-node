@@ -3,6 +3,7 @@ let defaults = {
 	'midi_port':	"MIDIOSC Router",
 };
 
+// command line options and help 
 let opt = require('node-getopt').create([
 	['l',	'listen=ARG',	'Incoming UDP port for OSC connections, default: ' + defaults.osc_port],
 	['m',	'midi=ARG',	'MIDI port name, default: ' + defaults.midi_port],
@@ -24,7 +25,7 @@ let midi = require('midi'),
     osc = require('osc-min'),
     fs = require('fs'),
     vm = require('vm'),
-    mdns = require('mdns2'),
+    mdns = require('mdns'),
     events = require('events'),
     tur = require('./tuRING'),
     PEG = require('pegjs');
@@ -60,6 +61,7 @@ function compiletuRING(ast){
      console.log("TURING init finished.");
 }
 
+// run a certain number of steps at a specified interval 
 function tempoStep(callback, bpm, numsteps){
     let x = 0;
     millis = (60 / bpm) * 1000;   
@@ -73,9 +75,10 @@ function tempoStep(callback, bpm, numsteps){
         }, millis);
 }
 
-// Start TapeHead
+// Initialize tapeHead and turn on the machine
 init();
 
+// MIDI configuration for interaction with a keyboard 
 let output = new midi.output();
 output.openVirtualPort(
 	args.options.midi ?
@@ -86,9 +89,6 @@ output.openVirtualPort(
 let input = new midi.input();
 input.openPort(0);
 input.on('message', function(deltaTime, message) {
-    //Intervene here to change MIDI functionality
-    //RouterScript.recvMIDI(message);
-    //console.log('Midi message received');
     if (message[0] == 144 && message[2] !==0){
         console.log("TURING NOTE: " + tur.tapeHead.tape[message[1]]);
         translatetoOSC('/blipper', tur.tapeHead.tape[message[1]]);
@@ -102,38 +102,31 @@ function translatetoOSC(address, args){
 		address: address,
 		args: args
 		});
-	
     socket.send(buf, 0, buf.length, 57120, '127.0.0.1'); 
-    //console.log("translate called with " + buf);
 }
 
-
+// OSC socket 
 let socket = udp.createSocket('udp4');
 socket.on("message", function(buffer, remote) {
 	try {
 		let msg = osc.fromBuffer(buffer);
 		let fs = require('fs');
-		
-		
+		if (msg.address == '/init') {
+		    tur.tapeHead.tape.init();
+        }
 		if (msg.address == '/tape') {
 		    console.log(tur.tapeHead.tape);
         }
-
-        if (msg.address == '/rules'){
-            console.log(tur.tuRING.rules);
-        }
-
-        if (msg.address == '/tempostep'){
-            tempoStep(tur.tapeHead.step, msg.args[0].value, msg.args[1].value);
-        }
-		//Potentially intervene here to process OSC message the way you want
-        //console.log("OSC message received.");
-        if (msg.address == '/turingRun'){
-            console.log("Running tuRING " + msg.args[0].value + " steps...");
-            tur.tuRING.run.steps(msg.args[0].value, msg.args[1].value);
-            //console.log(tur.tapeHead.tape);
-            //RouterScript.recvOSC(msg);
-        }
+    if (msg.address == '/rules'){
+        console.log(tur.tuRING.rules);
+    }
+    if (msg.address == '/tempostep'){
+        tempoStep(tur.tapeHead.step, msg.args[0].value, msg.args[1].value);
+    }
+    if (msg.address == '/turingRun'){
+        console.log("Running tuRING " + msg.args[0].value + " steps...");
+        tur.tuRING.run.steps(msg.args[0].value, msg.args[1].value);
+    }
 	}
 	catch(err) {
 		console.error('Invalid OSC packet');
@@ -147,7 +140,6 @@ socket.bind(
 		defaults.osc_port 
 );
 
-
 let ad = mdns.createAdvertisement(
 	mdns.udp('osc'),
 	parseInt((args.options.listen ?
@@ -157,6 +149,7 @@ let ad = mdns.createAdvertisement(
 
 ad.start();
 
+// cleanup 
 process.on('SIGINT', function () {
 	socket.close();
 	output.closePort();

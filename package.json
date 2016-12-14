@@ -7,8 +7,8 @@
     "url": "http://github.com/npm/npm.git"
   },
   "dependencies": {
-    "mdns2": "2.1.*",
-    "midi": "0.9.0",
+    "mdns": "^2.3.3",
+    "midi": "^0.9.5",
     "node-getopt": "0.2.3",
     "osc-min": "0.1.0",
     "pegjs": "^0.8.0",
