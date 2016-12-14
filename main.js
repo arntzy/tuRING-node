@@ -58,7 +58,7 @@ function parseRules(parser){
 }
 function compiletuRING(ast){
      tur.tuRING.compile.eval(ast);
-     console.log("TURING init finished.");
+     console.log("tuRING machine initialized and ready to accept instructions...");
 }
 
 // run a certain number of steps at a specified interval 

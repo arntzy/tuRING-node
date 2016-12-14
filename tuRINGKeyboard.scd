@@ -33,7 +33,7 @@ n.sendMsg("/init");
 n.disconnect
 
 
-//Synth Setup and Testing
+//Synth Setup for Midi Control
 m = NetAddr("127.0.0.1", 57120);
 m.sendMsg("/blipper", 60);
 
